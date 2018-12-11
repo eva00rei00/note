@@ -85,6 +85,7 @@ int PROPAGATION_NESTED = 6;
 需要子方法事务的成败不受父方法影响,也不能影响父方法事务的成败.
 
 如果业务需求每接受到一次请求无论业务是否成功都要记录日志到数据库，如下图：
+
 ![充值处理](https://raw.githubusercontent.com/eva00rei00/PicStore/master/pic/20181204103347.png)
 
 因为log()的操作不管扣款和创建订单成功与否都要生成日志，并且日志的操作成功与否不影响充值处理，所以log()方法的事务传播行为可以定义为:REQUIRES_NEW.
@@ -108,7 +109,9 @@ int PROPAGATION_NESTED = 6;
 子方法的事务的成败要受父方法事务成败的影响,但是不能影响父方法事务.
 
 在银行新增银行卡业务中，需要执行两个操作，一个是保存银行卡信息，一个是登记新创建的银行卡信息，其中登记银行卡信息成功与否不影响银行卡的创建。
+
 ![新增银行卡](https://raw.githubusercontent.com/eva00rei00/PicStore/master/pic/20181204103925.png)
+
 由以上需求，我们可知对于regster()方法的事务传播行为，可以设置为NESTED，action()事务的回滚，regster()保存的信息就没意义，也就需要跟着回滚，而regster()的回滚不影响action()事务；insert()的事务传播行为可以设置为REQUIRED, MANDATORY，即insert()回滚事务，action()的事务必须跟着回滚。
 
 ##### 2.1.2.4 MANDATORY
@@ -126,6 +129,7 @@ int PROPAGATION_NESTED = 6;
 ###### 使用情况
 
 在一个话费充值业务处理逻辑中，有如下图所示操作:
+
 ![充值处理](https://raw.githubusercontent.com/eva00rei00/PicStore/master/pic/20181204102826.png)
 
 chargeHandle()方法有charger()和order()两个子方法,因为业务需要扣款操作和创建订单操作同成功或者失败，因此，charger()和order()的事务不能相互独立，需要包含在chargeHandle()的事务中；
@@ -168,6 +172,7 @@ chargeHandle()方法有charger()和order()两个子方法,因为业务需要扣�
 这种方式适用于强制调用者禁止在事务环境内调用此方法的情况.
 ###### 使用情况
 在订单的售后处理中，更新完订单金额后，需要自动统计销售报表，如下图所示：
+
 ![售后处理](https://raw.githubusercontent.com/eva00rei00/PicStore/master/pic/20181204103714.png)
 
 根据业务可知，售后是已经处理完订单的充值请求后的功能，是对订单的后续管理，统计报表report()方法耗时较长，因此，我们需要设置report()的事务传播行为为:PROPAGATION_NEVER,表示不适合在有事务的操作中调用，因为report()太耗时。
